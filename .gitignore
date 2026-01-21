@@ -1,3 +1,7 @@
+# Ignore the temp_data file we use for the pipeline outputs we don't need
+# to move off of the CRC.
+temp_data
+
 # History files
 .Rhistory
 .Rapp.history
