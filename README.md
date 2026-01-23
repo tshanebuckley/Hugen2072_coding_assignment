@@ -1,6 +1,14 @@
 # Hugen2072_coding_assignment
 Review coding assignment utilizing Unix, PLINK, VCF/BCF, and R/RMarkdown
 
+## Files required for submission:
+
+All are in the root of this repository:
+- Your slurm script file for steps 1–10 -> ca.sh
+- The slurm log file for the script when you ran the script -> Log_ca.sh.out
+- The RMarkdown file for steps 11–20 -> ca.Rmd
+- The knitted HTML file produced by the RMarkdown file -> ca.html (also included ca.md to allow viewing on GitHub)
+
 ## CRC/bash/Slurm component: 
 
 1. Create and run a script on the CRC cluster that 
