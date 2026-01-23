@@ -1,0 +1,105 @@
+---
+title: "ca"
+output: html_document
+date: "2026-01-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 11. Then, create an RMarkdown file that knits to an HTML file which
+
+Ah look, here we are! ...gonna install/load dependencies here.
+
+```{r}
+# just going to install all of tidyverse
+# install.packages("tidyverse")
+library(tidyverse)
+```
+
+## 12. Reads the two allele frequency files and the logistic regression output into R, and
+
+```{r}
+lr <- read.table(
+  "data/data.assoc.logistic",
+  header = TRUE
+)
+ctrls <- read.table(
+  "data/data4.ctrls.freq",
+  header = TRUE
+)
+cases <- read.table(
+  "data/data4.cases.freq",
+  header = TRUE
+)
+```
+
+## 13. Plots a histogram of the case allele frequencies,
+
+```{r}
+cases %>% 
+  ggplot() +
+  aes(x = MAF) +
+  geom_histogram(bins = 20) +
+  theme_minimal()
+```
+
+## 14. Plots a histogram of the control allele frequencies,
+
+```{r}
+ctrls %>% 
+  ggplot() +
+  aes(x = MAF) +
+  geom_histogram(bins = 20) +
+  theme_minimal()
+```
+
+## 15. Plots a scatterplot of the case individuals’ allele frequencies (y axis) --AND-- 16. Versus the control individuals’ allele frequencies (x axis),
+
+```{r}
+# merge the cases and controls on the SNP
+case_controls <- cases %>% 
+  select(SNP, MAF) %>% 
+  rename(`Case MAF` = MAF) %>%
+  inner_join(
+    ctrls %>%
+      select(SNP, MAF) %>%
+      rename(`Control MAF` = MAF),
+    by = "SNP"
+  )
+# create the scatterplot
+case_controls %>% 
+  ggplot() +
+  aes(x = `Control MAF`, y = `Case MAF`) +
+  geom_point()
+```
+
+## 17. Plots a scatterplot of −log₁₀(p values) (y axis) versus chr4 basepair position (x axis), --AND-- 18. Reports the marker and p value of the marker with the lowest p value; then
+
+```{r}
+lr$NegLogP <- -log10(lr$P)
+lr_cleaned <- lr %>% 
+  drop_na() %>% 
+  filter(CHR == 4) %>% 
+  mutate(color = factor(if_else(P == min(P), "Min", "Other")))
+lr_cleaned %>% 
+  ggplot() +
+  aes(
+    y = NegLogP,
+    x = BP,
+    color = color
+  ) +
+  geom_point() +
+  # source referenced for annotating the min point:
+  # https://stackoverflow.com/questions/14351608/color-one-point-and-add-an-annotation-in-ggplot2
+  scale_color_manual(values = c("Min" = "red", "Other" = "black")) +
+  geom_text(data = textdf, aes(x = NegLogP * 1.05, y = BP, label = "my label"))
+  
+```
+
+## 19. Loads the snp_annot.RData workspace and merges the p values into the SNP annotation data frame object snp_annot_df in such a way that --AND-- 20. The order of the SNPs in snp_annot_df is unchanged.
+
+```{r}
+
+```
