@@ -2,6 +2,8 @@
 # to move off of the CRC.
 temp_data
 
+.nfs*
+
 # History files
 .Rhistory
 .Rapp.history

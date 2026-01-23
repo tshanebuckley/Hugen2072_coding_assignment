@@ -1,6 +1,8 @@
 ---
 title: "ca"
-output: html_document
+output:
+  html_document
+  # md_document # including this output for convenient view on GitHub
 date: "2026-01-22"
 ---
 
@@ -12,10 +14,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Ah look, here we are! ...gonna install/load dependencies here.
 
-```{r}
+```{r, include=FALSE}
 # just going to install all of tidyverse
 # install.packages("tidyverse")
 library(tidyverse)
+library(GWASTools)
+library(knitr)
 ```
 
 ## 12. Reads the two allele frequency files and the logistic regression output into R, and
@@ -72,7 +76,8 @@ case_controls <- cases %>%
 case_controls %>% 
   ggplot() +
   aes(x = `Control MAF`, y = `Case MAF`) +
-  geom_point()
+  geom_point() +
+  theme_minimal()
 ```
 
 ## 17. Plots a scatterplot of −log₁₀(p values) (y axis) versus chr4 basepair position (x axis), --AND-- 18. Reports the marker and p value of the marker with the lowest p value; then
@@ -83,6 +88,8 @@ lr_cleaned <- lr %>%
   drop_na() %>% 
   filter(CHR == 4) %>% 
   mutate(color = factor(if_else(P == min(P), "Min", "Other")))
+lowest_p <- lr_cleaned %>% 
+  filter(color == "Min")
 lr_cleaned %>% 
   ggplot() +
   aes(
@@ -93,13 +100,72 @@ lr_cleaned %>%
   geom_point() +
   # source referenced for annotating the min point:
   # https://stackoverflow.com/questions/14351608/color-one-point-and-add-an-annotation-in-ggplot2
-  scale_color_manual(values = c("Min" = "red", "Other" = "black")) +
-  geom_text(data = textdf, aes(x = NegLogP * 1.05, y = BP, label = "my label"))
-  
+  scale_color_manual(
+    values = c("Min" = "red", "Other" = "black")
+  ) +
+  geom_text(
+    aes(
+      y = NegLogP * 1.1,
+      x = BP,
+      label = paste0(
+        "Marker with the lowest p-value\n",
+        SNP,
+        ": ",
+        P
+      )
+    ),
+    data = lowest_p
+  ) + 
+  # stretch the ylim a bit to fit the text annotation
+  ylim(-0.1, max(lr_cleaned$NegLogP) * 1.15) +
+  theme_minimal() +
+  theme(legend.position="none")
 ```
 
 ## 19. Loads the snp_annot.RData workspace and merges the p values into the SNP annotation data frame object snp_annot_df in such a way that --AND-- 20. The order of the SNPs in snp_annot_df is unchanged.
 
 ```{r}
-
+load("/ix1/hugen2072-2026s/ca/snp_annot.RData")
+to_merge <- lr %>% 
+  select(SNP, P) %>% 
+  rename(rsID = SNP)
+temp_snp_annot_df <- snp_annot_df %>% 
+  # had to reference the docs
+  # https://www.bioconductor.org/packages//2.13/bioc/vignettes/GWASTools/inst/doc/DataCleaning.pdf
+  pData() %>% 
+  left_join(
+    to_merge,
+    by = "rsID"
+  )
+new_snp_annot_df <- snp_annot_df
+new_snp_annot_df$P <- temp_snp_annot_df$P
+# double check the dimensions of the new df vs the old
+# expecting the same number of rows and one extra column
+print(
+  paste0(
+    "Original number of columns: ",
+    ncol(snp_annot_df)
+  )
+)
+print(
+  paste0(
+    "New number of columns: ",
+    ncol(new_snp_annot_df)
+  )
+)
+print(
+  paste0(
+    "Original number of rows: ",
+    nrow(snp_annot_df)
+  )
+)
+print(
+  paste0(
+    "New number of rows: ",
+    nrow(snp_annot_df)
+  )
+)
+# show the new table 
+kable(head(pData(new_snp_annot_df)))
+kable(tail(pData(new_snp_annot_df)))
 ```
